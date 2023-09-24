@@ -1,73 +1,100 @@
-import tkinter as tk
-from tkinter import messagebox
+import json
 
-class Contact:
-    def __init__(self, name, phone, email):
-        self.name = name
-        self.phone = phone
-        self.email = email
 
-class ContactManagementApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Contact Management System")
-        
-        self.contacts = []
-        
-        self.name_var = tk.StringVar()
-        self.phone_var = tk.StringVar()
-        self.email_var = tk.StringVar()
-        
-        self.create_gui()
-        
-    def create_gui(self):
-        self.name_label = tk.Label(self.root, text="Name:")
-        self.name_label.pack()
-        self.name_entry = tk.Entry(self.root, textvariable=self.name_var)
-        self.name_entry.pack()
-        
-        self.phone_label = tk.Label(self.root, text="Phone:")
-        self.phone_label.pack()
-        self.phone_entry = tk.Entry(self.root, textvariable=self.phone_var)
-        self.phone_entry.pack()
-        
-        self.email_label = tk.Label(self.root, text="Email:")
-        self.email_label.pack()
-        self.email_entry = tk.Entry(self.root, textvariable=self.email_var)
-        self.email_entry.pack()
-        
-        self.add_button = tk.Button(self.root, text="Add Contact", command=self.add_contact)
-        self.add_button.pack()
-        
-        self.view_button = tk.Button(self.root, text="View Contacts", command=self.view_contacts)
-        self.view_button.pack()
-        
-    def add_contact(self):
-        name = self.name_var.get()
-        phone = self.phone_var.get()
-        email = self.email_var.get()
-        
-        if name and phone and email:
-            contact = Contact(name, phone, email)
-            self.contacts.append(contact)
-            self.clear_entries()
-            messagebox.showinfo("Success", "Contact added successfully.")
+# Load contacts from a file if it exists, otherwise initialize an empty dictionary
+def load_contacts(filename):
+    try:
+        with open(filename, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+
+# Save contacts to a file
+def save_contacts(contacts, filename):
+    with open(filename, 'w') as file:
+        json.dump(contacts, file)
+
+
+# Add a new contact
+def add_contact(contacts):
+    name = input("Enter the contact's name: ")
+    phone = input("Enter the contact's phone number: ")
+    email = input("Enter the contact's email address: ")
+
+    contacts[name] = {'phone': phone, 'email': email}
+    print("Contact added successfully!")
+
+
+# View all contacts
+def view_contacts(contacts):
+    if not contacts:
+        print("No contacts found.")
+    else:
+        for name, info in contacts.items():
+            print(f"Name: {name}, Phone: {info['phone']}, Email: {info['email']}")
+
+
+# Edit an existing contact
+def edit_contact(contacts):
+    name = input("Enter the name of the contact to edit: ")
+    if name in contacts:
+        print("Current Contact Information:")
+        print(f"Name: {name}, Phone: {contacts[name]['phone']}, Email: {contacts[name]['email']}")
+
+        phone = input("Enter the new phone number (press enter to keep current): ")
+        email = input("Enter the new email address (press enter to keep current): ")
+
+        if phone:
+            contacts[name]['phone'] = phone
+        if email:
+            contacts[name]['email'] = email
+
+        print("Contact updated successfully!")
+    else:
+        print("Contact not found.")
+
+
+# Delete a contact
+def delete_contact(contacts):
+    name = input("Enter the name of the contact to delete: ")
+    if name in contacts:
+        del contacts[name]
+        print("Contact deleted successfully!")
+    else:
+        print("Contact not found.")
+
+
+# Main program loop
+def main():
+    filename = 'contacts.json'
+    contacts = load_contacts(filename)
+
+    while True:
+        print("\nContact Management System")
+        print("1. Add a new contact")
+        print("2. View all contacts")
+        print("3. Edit an existing contact")
+        print("4. Delete a contact")
+        print("5. Quit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            add_contact(contacts)
+        elif choice == '2':
+            view_contacts(contacts)
+        elif choice == '3':
+            edit_contact(contacts)
+        elif choice == '4':
+            delete_contact(contacts)
+        elif choice == '5':
+            save_contacts(contacts, filename)
+            print("Contacts saved. Exiting the program.")
+            break
         else:
-            messagebox.showerror("Error", "Please fill in all fields.")
-        
-    def view_contacts(self):
-        if self.contacts:
-            contact_list = "\n".join(f"Name: {c.name}, Phone: {c.phone}, Email: {c.email}" for c in self.contacts)
-            messagebox.showinfo("Contacts", contact_list)
-        else:
-            messagebox.showinfo("Contacts", "No contacts found.")
-        
-    def clear_entries(self):
-        self.name_var.set("")
-        self.phone_var.set("")
-        self.email_var.set()
+            print("Invalid choice. Please try again.")
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = ContactManagementApp(root)
-    root.mainloop()
+
+if _name_ == "_main_":
+    main()
